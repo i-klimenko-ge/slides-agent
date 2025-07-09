@@ -24,4 +24,5 @@ def get_model(tools_list):
 
     if tools_list:
         model = model.bind_tools(tools_list)
-            return model
+    
+    return model
