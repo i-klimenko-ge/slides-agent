@@ -1,15 +1,14 @@
 from langchain_core.tools import tool
 from typing import Annotated
 import os
-from pptx import Presentation as PresentationFactory
-from pptx.presentation import Presentation
+from presentation_reader import PresentationReader
 from dotenv import load_dotenv
 
 load_dotenv()
 
 PRESENTATIONS_DIR = os.getenv("PRESENTATIONS_DIR", "presentations")
 
-_current_presentation: Presentation | None = None
+_current_presentation: PresentationReader | None = None
 _current_presentation_path: str | None = None
 _current_slide_index: int | None = None
 
@@ -40,7 +39,7 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
         return {"status": "error", "message": f"Файл {query} не найден"}
 
     try:
-        prs = PresentationFactory(path)
+        prs = PresentationReader(path)
     except Exception as e:  # pragma: no cover - basic error reporting
         return {"status": "error", "message": f"Не удалось открыть файл: {e}"}
 
@@ -49,7 +48,7 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
     _current_slide_index = 0
     return {
         "status": "ok",
-        "slides_count": len(prs.slides),
+        "slides_count": prs.slides_count,
         "message": f"Открыта презентация {os.path.basename(path)}",
     }
 
@@ -77,13 +76,10 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
 
     prs = _current_presentation
 
-    if slide_number < 1 or slide_number > len(prs.slides):
+    if slide_number < 1 or slide_number > prs.slides_count:
         return {"status": "error", "message": "Некорректный номер слайда"}
 
-    slide = prs.slides[slide_number - 1]
     _current_slide_index = slide_number - 1
-    text = "\n".join(
-        shape.text for shape in slide.shapes if hasattr(shape, "text")
-    )
+    text = prs.get_slide_text(slide_number)
 
     return {"status": "ok", "slide_number": slide_number, "text": text}
