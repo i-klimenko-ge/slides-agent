@@ -13,9 +13,14 @@ def reflect_node(state: AgentState, config: RunnableConfig):
     """1) Reflect, plan & choose one tool call."""
 
 
+    current_slide_info = (
+        f"\n\nТекущий слайд: {state['current_slide']}" if state.get('current_slide') else ""
+    )
+
     system = SystemMessage(
         create_system_prompt() +
-        get_react_instructions()
+        get_react_instructions() +
+        current_slide_info
     )
 
     tools_list = [open_presentation_tool, close_presentation_tool, open_slide]
@@ -29,9 +34,17 @@ def use_tool_node(state: AgentState):
     """2) Execute the tool call chosen in reflect_node."""
     outputs = []
     last = state["messages"][-1]
+    current_slide = state.get("current_slide")
 
     for call in last.tool_calls:
         result = tools_by_name[call["name"]].invoke(call["args"])
+
+        if call["name"] == open_slide.name and result.get("status") == "ok":
+            current_slide = result.get("slide_number")
+        elif call["name"] == open_presentation_tool.name and result.get("status") == "ok":
+            current_slide = 1
+        elif call["name"] == close_presentation_tool.name and result.get("status") == "ok":
+            current_slide = None
 
         outputs.append(
             ToolMessage(
@@ -40,7 +53,7 @@ def use_tool_node(state: AgentState):
                 tool_call_id=call["id"],
             )
         )
-    return {"messages": outputs}
+    return {"messages": outputs, "current_slide": current_slide}
 
 def should_use_tool(state: AgentState):
     """If the last LLM output included a tool call, go to execute; otherwise end."""
@@ -56,5 +69,4 @@ def get_searches_left(state: AgentState, max_searches: int = 5):
         # counting down searches to the last human message
         elif isinstance(m, HumanMessage):
             break
-
     return max_searches - searches
