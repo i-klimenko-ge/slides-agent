@@ -3,7 +3,7 @@ from colorama import init, Fore, Style, Back
 from graph import graph
 
 if __name__ == '__main__':
-    conversation = {"messages": []}
+    conversation = {"messages": [], "current_slide": None}
     print("Чем могу помочь?")
     while True:
         user_input = input("You: ")
@@ -31,5 +31,6 @@ if __name__ == '__main__':
                 else:
                     msg.pretty_print()
                 conversation["messages"].append(msg)
-            except AttributeError:
-                print(msg)
+                if step.get("current_slide") is not None:
+                    conversation["current_slide"] = step["current_slide"]
+            except AttributeError:                print(msg)

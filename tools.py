@@ -50,8 +50,8 @@ def close_presentation_tool() -> dict:
     return {"status": "ok", "message": "Презентация закрыта"}
 
 @tool
-def open_slide(answer: Annotated[str, "запрос для поиска"]) -> dict:
-    """Открыть необходимый слайд в презентации"""
+def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
+    """Открыть необходимый слайд в презентации по его номеру"""
     global _current_presentation, _current_slide_index
 
     if _current_presentation is None:
@@ -59,24 +59,13 @@ def open_slide(answer: Annotated[str, "запрос для поиска"]) -> di
 
     prs = _current_presentation
 
-    try:
-        num = int(answer)
-        if num < 1 or num > len(prs.slides):
-            return {"status": "error", "message": "Некорректный номер слайда"}
-        slide = prs.slides[num - 1]
-        _current_slide_index = num - 1
-        text = "\n".join(
-            shape.text for shape in slide.shapes if hasattr(shape, "text")
-        )
-        return {"status": "ok", "slide_number": num, "text": text}
-    except ValueError:
-        query_lower = answer.lower()
-        for i, slide in enumerate(prs.slides, start=1):
-            text = "\n".join(
-                shape.text for shape in slide.shapes if hasattr(shape, "text")
-            )
-            if query_lower in text.lower():
-                _current_slide_index = i - 1
-                return {"status": "ok", "slide_number": i, "text": text}
+    if slide_number < 1 or slide_number > len(prs.slides):
+        return {"status": "error", "message": "Некорректный номер слайда"}
 
-        return {"status": "error", "message": "Слайд не найден"}
+    slide = prs.slides[slide_number - 1]
+    _current_slide_index = slide_number - 1
+    text = "\n".join(
+        shape.text for shape in slide.shapes if hasattr(shape, "text")
+    )
+
+    return {"status": "ok", "slide_number": slide_number, "text": text}
