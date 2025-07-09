@@ -14,6 +14,20 @@ _current_presentation_path: str | None = None
 _current_slide_index: int | None = None
 
 @tool
+def list_presentations_tool() -> dict:
+    """Получить список файлов презентаций в каталоге."""
+    if not os.path.isdir(PRESENTATIONS_DIR):
+        return {
+            "status": "error",
+            "message": f"Каталог {PRESENTATIONS_DIR} не найден"
+        }
+    files = [
+        f for f in os.listdir(PRESENTATIONS_DIR)
+        if os.path.isfile(os.path.join(PRESENTATIONS_DIR, f))
+    ]
+    return {"status": "ok", "files": files}
+
+@tool
 def open_presentation_tool(query: Annotated[str, "имя файла презентации"]) -> dict:
     """Открыть презентацию для просмотра"""
     global _current_presentation, _current_presentation_path, _current_slide_index
