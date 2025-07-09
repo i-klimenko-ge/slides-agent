@@ -1,7 +1,8 @@
 from langchain_core.tools import tool
 from typing import Annotated
 import os
-from pptx import Presentation
+from pptx import Presentation as PresentationFactory
+from pptx.presentation import Presentation
 
 PRESENTATIONS_DIR = os.getenv("PRESENTATIONS_DIR", "presentations")
 
@@ -22,7 +23,7 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
         return {"status": "error", "message": f"Файл {query} не найден"}
 
     try:
-        prs = Presentation(path)
+        prs = PresentationFactory(path)
     except Exception as e:  # pragma: no cover - basic error reporting
         return {"status": "error", "message": f"Не удалось открыть файл: {e}"}
 
