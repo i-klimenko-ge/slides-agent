@@ -3,6 +3,9 @@ from typing import Annotated
 import os
 from pptx import Presentation as PresentationFactory
 from pptx.presentation import Presentation
+from dotenv import load_dotenv
+
+load_dotenv()
 
 PRESENTATIONS_DIR = os.getenv("PRESENTATIONS_DIR", "presentations")
 
