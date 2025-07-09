@@ -3,11 +3,24 @@ from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from state import AgentState
 from model import get_model
-from tools import open_presentation_tool, close_presentation_tool, open_slide
+from tools import (
+    open_presentation_tool,
+    close_presentation_tool,
+    open_slide,
+    list_presentations_tool,
+)
 from prompts import create_system_prompt, get_react_instructions
 
 # Map name → tool
-tools_by_name = {tool.name: tool for tool in [open_presentation_tool, close_presentation_tool, open_slide]}
+tools_by_name = {
+    tool.name: tool
+    for tool in [
+        open_presentation_tool,
+        close_presentation_tool,
+        open_slide,
+        list_presentations_tool,
+    ]
+}
 
 def reflect_node(state: AgentState, config: RunnableConfig):
     """1) Reflect, plan & choose one tool call."""
@@ -23,7 +36,12 @@ def reflect_node(state: AgentState, config: RunnableConfig):
         current_slide_info
     )
 
-    tools_list = [open_presentation_tool, close_presentation_tool, open_slide]
+    tools_list = [
+        open_presentation_tool,
+        close_presentation_tool,
+        open_slide,
+        list_presentations_tool,
+    ]
 
     model = get_model(tools_list)
     response = model.invoke([system] + list(state["messages"]), config)
