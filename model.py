@@ -1,6 +1,9 @@
 import os
 import sys
 from colorama import init, Fore, Style, Back
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from langchain_gigachat import GigaChat
 
@@ -21,5 +24,4 @@ def get_model(tools_list):
 
     if tools_list:
         model = model.bind_tools(tools_list)
-        
-    return model
+            return model
