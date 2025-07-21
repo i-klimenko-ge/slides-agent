@@ -1,17 +1,22 @@
 from langchain_core.tools import tool
 from typing import Annotated
 import os
+import platform
 from pptx import Presentation as PresentationFactory
 from pptx.presentation import Presentation
-from dotenv import load_dotenv
 
-load_dotenv()
+from config import config
 
-PRESENTATIONS_DIR = os.getenv("PRESENTATIONS_DIR", "presentations")
+PRESENTATIONS_DIR = config.get("presentations_dir", "presentations")
+OS_TYPE = config.get("os", platform.system().lower())
 
 _current_presentation: Presentation | None = None
 _current_presentation_path: str | None = None
 _current_slide_index: int | None = None
+
+from viewer import get_viewer
+
+_viewer = get_viewer(OS_TYPE)
 
 @tool
 def list_presentations_tool() -> dict:
@@ -44,6 +49,12 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
     except Exception as e:  # pragma: no cover - basic error reporting
         return {"status": "error", "message": f"Не удалось открыть файл: {e}"}
 
+    # try to open the presentation with a system viewer if possible
+    try:
+        _viewer.open(path)
+    except Exception:
+        pass
+
     _current_presentation = prs
     _current_presentation_path = path
     _current_slide_index = 0
@@ -65,6 +76,8 @@ def close_presentation_tool() -> dict:
     _current_presentation_path = None
     _current_slide_index = None
 
+    _viewer.close()
+
     return {"status": "ok", "message": "Презентация закрыта"}
 
 @tool
@@ -81,6 +94,12 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
         return {"status": "error", "message": "Некорректный номер слайда"}
 
     slide = prs.slides[slide_number - 1]
+
+    try:
+        _viewer.goto_slide(slide_number - 1)
+    except Exception:
+        pass
+
     _current_slide_index = slide_number - 1
     text = "\n".join(
         shape.text for shape in slide.shapes if hasattr(shape, "text")
