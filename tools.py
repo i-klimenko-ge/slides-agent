@@ -102,3 +102,40 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
     text = prs.get_slide_text(slide_number - 1)
 
     return {"status": "ok", "slide_number": slide_number, "text": text}
+
+@tool
+def find_slide_tool(query: Annotated[str, "текст для поиска по слайдам"]) -> dict:
+    """Найти слайды содержащие указанный текст."""
+    global _current_presentation
+
+    if _current_presentation is None:
+        return {"status": "error", "message": "Презентация не открыта"}
+
+    prs = _current_presentation
+    query_lower = query.lower()
+    matches = []
+    for i in range(prs.slides_count()):
+        text = prs.get_slide_text(i)
+        if query_lower in text.lower():
+            matches.append(i + 1)
+    if matches:
+        return {"status": "ok", "matches": matches}
+    return {"status": "error", "message": "Слайды не найдены"}
+
+
+@tool
+def list_slides_tool() -> dict:
+    """Получить текстовое содержимое всех слайдов текущей презентации."""
+    global _current_presentation
+
+    if _current_presentation is None:
+        return {"status": "error", "message": "Презентация не открыта"}
+
+    prs = _current_presentation
+
+    slides = []
+    for i in range(prs.slides_count()):
+        slides.append({"number": i + 1, "text": prs.get_slide_text(i)})
+
+    return {"status": "ok", "slides": slides}
+

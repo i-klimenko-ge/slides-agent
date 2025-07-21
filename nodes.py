@@ -8,6 +8,8 @@ from tools import (
     close_presentation_tool,
     open_slide,
     list_presentations_tool,
+    find_slide_tool,
+    list_slides_tool,
 )
 from prompts import create_system_prompt, get_react_instructions
 
@@ -19,6 +21,8 @@ tools_by_name = {
         close_presentation_tool,
         open_slide,
         list_presentations_tool,
+        find_slide_tool,
+        list_slides_tool,
     ]
 }
 
@@ -41,6 +45,8 @@ def reflect_node(state: AgentState, config: RunnableConfig):
         close_presentation_tool,
         open_slide,
         list_presentations_tool,
+        find_slide_tool,
+        list_slides_tool,
     ]
 
     model = get_model(tools_list)
