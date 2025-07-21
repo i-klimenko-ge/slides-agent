@@ -28,6 +28,10 @@ class BasePresentation(ABC):
     def close(self) -> None:
         self.viewer.close()
 
+    def start_show(self) -> None:
+        """Start presentation in fullscreen mode."""
+        self.viewer.start_show()
+
     def goto(self, index: int) -> None:
         self.viewer.goto_slide(index)
 
