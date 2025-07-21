@@ -110,7 +110,7 @@ class MacPresentationViewer(PresentationViewer):
             if self.path and self.path.lower().endswith(".pptx"):
                 pyautogui.hotkey("command", "option", "p")
             else:
-                pyautogui.hotkey("fn", "f5")
+                pyautogui.hotkey("fn", "f")
             self.current_index = 0
 
 
