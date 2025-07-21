@@ -3,6 +3,7 @@ from typing import Annotated
 import os
 import platform
 from presentation import create_presentation, BasePresentation
+import time
 
 from config import config
 
@@ -47,6 +48,8 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
     try:
         prs = create_presentation(path, _viewer)
         prs.open()
+        time.sleep(2)
+        prs.start_show()
     except Exception as e:  # pragma: no cover - basic error reporting
         return {"status": "error", "message": f"Не удалось открыть файл: {e}"}
 
@@ -91,6 +94,7 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
         return {"status": "error", "message": "Некорректный номер слайда"}
 
     try:
+        prs.start_show()
         prs.goto(slide_number - 1)
     except Exception:
         pass
