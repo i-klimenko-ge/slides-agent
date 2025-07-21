@@ -107,16 +107,26 @@ class MacPresentationViewer(PresentationViewer):
 
     def start_show(self):
         if pyautogui is not None:
-            if self.path and self.path.lower().endswith(".pptx"):
-                pyautogui.hotkey("command", "option", "p")
-            else:
-                pyautogui.hotkey("fn", "f")
-            self.current_index = 0
+            pyautogui.hotkey("fn", "f")
+        self.current_index = 0
 
 
-def get_viewer(os_type: str) -> PresentationViewer:
+class MacPptxPresentationViewer(MacPresentationViewer):
+    """Specialized viewer for pptx files on macOS."""
+
+    def start_show(self):
+        if pyautogui is not None:
+            pyautogui.hotkey("command", "option", "p")
+        self.current_index = 0
+
+
+def get_viewer(os_type: str, path: str | None = None) -> PresentationViewer:
+    """Return viewer instance depending on OS and file type."""
     if os_type.startswith("win"):
         return WindowsPresentationViewer()
     if os_type.startswith("darwin") or os_type == "mac":
+        if path and path.lower().endswith(".pptx"):
+            return MacPptxPresentationViewer()
         return MacPresentationViewer()
     return LinuxPresentationViewer()
+

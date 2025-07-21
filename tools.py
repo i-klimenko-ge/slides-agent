@@ -16,8 +16,6 @@ _current_slide_index: int | None = None
 
 from viewer import get_viewer
 
-_viewer = get_viewer(OS_TYPE)
-
 @tool
 def list_presentations_tool() -> dict:
     """Получить список файлов презентаций в каталоге."""
@@ -46,7 +44,8 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
         return {"status": "error", "message": f"Файл {query} не найден"}
 
     try:
-        prs = create_presentation(path, _viewer)
+        viewer = get_viewer(OS_TYPE, path)
+        prs = create_presentation(path, viewer)
         prs.open()
         time.sleep(2)
         prs.start_show()
