@@ -11,6 +11,7 @@ class PresentationViewer:
     def __init__(self) -> None:
         self.process: subprocess.Popen | None = None
         self.current_index: int | None = None
+        self.path: str | None = None
 
     def open(self, path: str):
         raise NotImplementedError
@@ -42,6 +43,7 @@ class LinuxPresentationViewer(PresentationViewer):
             # fallback
             self.process = subprocess.Popen(["xdg-open", path])
         self.current_index = 0
+        self.path = path
 
     def goto_slide(self, index: int):
         if self.process is None:
@@ -72,6 +74,7 @@ class WindowsPresentationViewer(PresentationViewer):
         self.close()
         self.process = subprocess.Popen(["start", "", path], shell=True)
         self.current_index = 0
+        self.path = path
 
     def goto_slide(self, index: int):
         if pyautogui is not None:
@@ -93,6 +96,7 @@ class MacPresentationViewer(PresentationViewer):
         self.close()
         self.process = subprocess.Popen(["open", path])
         self.current_index = 0
+        self.path = path
 
     def goto_slide(self, index: int):
         if pyautogui is not None:
@@ -103,7 +107,10 @@ class MacPresentationViewer(PresentationViewer):
 
     def start_show(self):
         if pyautogui is not None:
-            pyautogui.press("f5")
+            if self.path and self.path.lower().endswith(".pptx"):
+                pyautogui.hotkey("command", "option", "p")
+            else:
+                pyautogui.hotkey("fn", "f5")
             self.current_index = 0
 
 
