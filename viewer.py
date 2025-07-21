@@ -1,4 +1,5 @@
 import subprocess
+import time
 
 try:  # pragma: no cover - optional dependency
     import pyautogui
@@ -39,6 +40,7 @@ class PresentationViewer:
 
         key = "right" if steps > 0 else "left"
         for _ in range(abs(steps)):
+            time.sleep(1)
             self._press_key(key)
         self.current_index = index
 
