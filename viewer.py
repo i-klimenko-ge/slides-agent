@@ -61,11 +61,34 @@ class MacPresentationViewer(PresentationViewer):
 
     def open(self, path: str):
         self.close()
-        self.process = subprocess.Popen(["open", path])
+        # open the file in Keynote and immediately start the slideshow in
+        # fullscreen mode. Keynote is bundled with macOS and supports basic
+        # AppleScript commands for controlling the presentation. We launch the
+        # application and start presenting from the first slide.
+        script = ";".join([
+            "tell application \"Keynote\"",
+            f"open POSIX file \"{path}\"",
+            "activate",
+            "delay 1",
+            "start the front slideshow",
+            "end tell",
+        ])
+        self.process = subprocess.Popen(["osascript", "-e", script])
         self.current_index = 0
 
     def goto_slide(self, index: int):
+        # Use AppleScript to show the given slide in the running slideshow.
+        script = (
+            'tell application "Keynote" to tell the front document '
+            f'to show slide {index + 1}'
+        )
+        subprocess.run(["osascript", "-e", script], check=False)
         self.current_index = index
+
+    def close(self):
+        # Ensure Keynote quits when closing the viewer.
+        subprocess.run(["osascript", "-e", 'tell application "Keynote" to quit'], check=False)
+        super().close()
 
 
 def get_viewer(os_type: str) -> PresentationViewer:
