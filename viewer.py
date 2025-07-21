@@ -1,4 +1,5 @@
 import subprocess
+import time
 
 try:  # pragma: no cover - optional dependency
     import pyautogui
@@ -22,8 +23,26 @@ class PresentationViewer:
         self.process = None
         self.current_index = None
 
-    def goto_slide(self, index: int):
-        raise NotImplementedError
+    def _press_key(self, key: str) -> None:
+        """Press a keyboard key if possible."""
+        if pyautogui is not None:  # pragma: no cover - optional dependency
+            pyautogui.press(key)
+
+    def goto_slide(self, index: int) -> None:
+        """Navigate to a slide using left/right arrows."""
+        if self.process is None:
+            return
+
+        start = self.current_index or 0
+        steps = index - start
+        if steps == 0:
+            return
+
+        key = "right" if steps > 0 else "left"
+        for _ in range(abs(steps)):
+            time.sleep(1)
+            self._press_key(key)
+        self.current_index = index
 
     def start_show(self):
         """Optional: start presentation in fullscreen."""
@@ -45,19 +64,12 @@ class LinuxPresentationViewer(PresentationViewer):
         self.current_index = 0
         self.path = path
 
-    def goto_slide(self, index: int):
-        if self.process is None:
-            return
-        if pyautogui is not None:
-            for ch in str(index + 1):
-                pyautogui.press(ch)
-            pyautogui.press("enter")
+
+    def _press_key(self, key: str) -> None:
+        if pyautogui is not None:  # pragma: no cover - optional dependency
+            pyautogui.press(key)
         else:
-            steps = index - (self.current_index or 0)
-            key = "Right" if steps > 0 else "Left"
-            for _ in range(abs(steps)):
-                subprocess.run(["xdotool", "key", key], check=False)
-        self.current_index = index
+            subprocess.run(["xdotool", "key", key.capitalize()], check=False)
 
     def start_show(self):
         if pyautogui is not None:
@@ -76,13 +88,6 @@ class WindowsPresentationViewer(PresentationViewer):
         self.current_index = 0
         self.path = path
 
-    def goto_slide(self, index: int):
-        if pyautogui is not None:
-            for ch in str(index + 1):
-                pyautogui.press(ch)
-            pyautogui.press("enter")
-        self.current_index = index
-
     def start_show(self):
         if pyautogui is not None:
             pyautogui.press("f5")
@@ -97,13 +102,6 @@ class MacPresentationViewer(PresentationViewer):
         self.process = subprocess.Popen(["open", path])
         self.current_index = 0
         self.path = path
-
-    def goto_slide(self, index: int):
-        if pyautogui is not None:
-            for ch in str(index + 1):
-                pyautogui.press(ch)
-            pyautogui.press("enter")
-        self.current_index = index
 
     def start_show(self):
         if pyautogui is not None:
