@@ -2,15 +2,14 @@ from langchain_core.tools import tool
 from typing import Annotated
 import os
 import platform
-from pptx import Presentation as PresentationFactory
-from pptx.presentation import Presentation
+from presentation import create_presentation, BasePresentation
 
 from config import config
 
 PRESENTATIONS_DIR = config.get("presentations_dir", "presentations")
 OS_TYPE = config.get("os", platform.system().lower())
 
-_current_presentation: Presentation | None = None
+_current_presentation: BasePresentation | None = None
 _current_presentation_path: str | None = None
 _current_slide_index: int | None = None
 
@@ -29,6 +28,7 @@ def list_presentations_tool() -> dict:
     files = [
         f for f in os.listdir(PRESENTATIONS_DIR)
         if os.path.isfile(os.path.join(PRESENTATIONS_DIR, f))
+        and os.path.splitext(f)[1].lower() in {".pptx", ".pdf"}
     ]
     return {"status": "ok", "files": files}
 
@@ -45,22 +45,17 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
         return {"status": "error", "message": f"Файл {query} не найден"}
 
     try:
-        prs = PresentationFactory(path)
+        prs = create_presentation(path, _viewer)
+        prs.open()
     except Exception as e:  # pragma: no cover - basic error reporting
         return {"status": "error", "message": f"Не удалось открыть файл: {e}"}
-
-    # try to open the presentation with a system viewer if possible
-    try:
-        _viewer.open(path)
-    except Exception:
-        pass
 
     _current_presentation = prs
     _current_presentation_path = path
     _current_slide_index = 0
     return {
         "status": "ok",
-        "slides_count": len(prs.slides),
+        "slides_count": prs.slides_count(),
         "message": f"Открыта презентация {os.path.basename(path)}",
     }
 
@@ -72,11 +67,13 @@ def close_presentation_tool() -> dict:
     if _current_presentation is None:
         return {"status": "error", "message": "Презентация не открыта"}
 
+    try:
+        _current_presentation.close()
+    except Exception:
+        pass
     _current_presentation = None
     _current_presentation_path = None
     _current_slide_index = None
-
-    _viewer.close()
 
     return {"status": "ok", "message": "Презентация закрыта"}
 
@@ -90,19 +87,15 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
 
     prs = _current_presentation
 
-    if slide_number < 1 or slide_number > len(prs.slides):
+    if slide_number < 1 or slide_number > prs.slides_count():
         return {"status": "error", "message": "Некорректный номер слайда"}
 
-    slide = prs.slides[slide_number - 1]
-
     try:
-        _viewer.goto_slide(slide_number - 1)
+        prs.goto(slide_number - 1)
     except Exception:
         pass
 
     _current_slide_index = slide_number - 1
-    text = "\n".join(
-        shape.text for shape in slide.shapes if hasattr(shape, "text")
-    )
+    text = prs.get_slide_text(slide_number - 1)
 
     return {"status": "ok", "slide_number": slide_number, "text": text}
