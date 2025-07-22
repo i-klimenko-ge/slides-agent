@@ -12,9 +12,10 @@ OS_TYPE = config.get("os", platform.system().lower())
 
 _current_presentation: BasePresentation | None = None
 _current_presentation_path: str | None = None
-_current_slide_index: int | None = None
+_current_slide_num: int | None = None
 
 from viewer import get_viewer
+
 
 @tool
 def list_presentations_tool() -> dict:
@@ -31,10 +32,11 @@ def list_presentations_tool() -> dict:
     ]
     return {"status": "ok", "files": files}
 
+
 @tool
 def open_presentation_tool(query: Annotated[str, "имя файла презентации"]) -> dict:
     """Открыть презентацию для просмотра"""
-    global _current_presentation, _current_presentation_path, _current_slide_index
+    global _current_presentation, _current_presentation_path, _current_slide_num
 
     path = query
     if not os.path.isabs(path):
@@ -54,17 +56,18 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
 
     _current_presentation = prs
     _current_presentation_path = path
-    _current_slide_index = 0
+    _current_slide_num = 0
     return {
         "status": "ok",
         "slides_count": prs.slides_count(),
         "message": f"Открыта презентация {os.path.basename(path)}",
     }
 
+
 @tool
 def close_presentation_tool() -> dict:
     """Завершить просмотр и закрыть презентацию"""
-    global _current_presentation, _current_presentation_path, _current_slide_index
+    global _current_presentation, _current_presentation_path, _current_slide_num
 
     if _current_presentation is None:
         return {"status": "error", "message": "Презентация не открыта"}
@@ -75,14 +78,15 @@ def close_presentation_tool() -> dict:
         pass
     _current_presentation = None
     _current_presentation_path = None
-    _current_slide_index = None
+    _current_slide_num = None
 
     return {"status": "ok", "message": "Презентация закрыта"}
+
 
 @tool
 def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
     """Открыть необходимый слайд в презентации по его номеру"""
-    global _current_presentation, _current_slide_index
+    global _current_presentation, _current_slide_num
 
     if _current_presentation is None:
         return {"status": "error", "message": "Презентация не открыта"}
@@ -93,12 +97,28 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
         return {"status": "error", "message": "Некорректный номер слайда"}
 
     try:
-        prs.start_show()
-        prs.goto(slide_number - 1)
+        prs.goto(slide_number)
     except Exception:
         pass
 
-    _current_slide_index = slide_number - 1
+    _current_slide_num = slide_number - 1
     text = prs.get_slide_text(slide_number - 1)
 
     return {"status": "ok", "slide_number": slide_number, "text": text}
+
+
+@tool
+def list_slides_tool() -> dict:
+    """Получить номера слайдов и соответствующее им текстовое содержимое"""
+    global _current_presentation
+
+    if _current_presentation is None:
+        return {"status": "error", "message": "Презентация не открыта"}
+
+    prs = _current_presentation
+
+    slides = []
+    for i in range(prs.slides_count()):
+        slides.append({"number": i + 1, "text": prs.get_slide_text(i)})
+
+    return {"status": "ok", "slides": slides}

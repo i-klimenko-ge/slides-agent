@@ -32,15 +32,15 @@ class BasePresentation(ABC):
         """Start presentation in fullscreen mode."""
         self.viewer.start_show()
 
-    def goto(self, index: int) -> None:
-        self.viewer.goto_slide(index)
+    def goto(self, num: int) -> None:
+        self.viewer.goto_slide(num)
 
     @abstractmethod
     def slides_count(self) -> int:  # pragma: no cover - interface
         ...
 
     @abstractmethod
-    def get_slide_text(self, index: int) -> str:  # pragma: no cover - interface
+    def get_slide_text(self, num: int) -> str:  # pragma: no cover - interface
         ...
 
 
@@ -54,8 +54,8 @@ class PptxPresentation(BasePresentation):
     def slides_count(self) -> int:
         return len(self.prs.slides)
 
-    def get_slide_text(self, index: int) -> str:
-        slide = self.prs.slides[index]
+    def get_slide_text(self, num: int) -> str:
+        slide = self.prs.slides[num]
         return "\n".join(
             shape.text for shape in slide.shapes if hasattr(shape, "text")
         )
@@ -77,11 +77,11 @@ class PdfPresentation(BasePresentation):
             return len(self.reader.pages)
         return 0
 
-    def get_slide_text(self, index: int) -> str:
+    def get_slide_text(self, num: int) -> str:
         if self.reader is None:
             return ""
         try:
-            page = self.reader.pages[index]
+            page = self.reader.pages[num]
             text = page.extract_text()
             return text or ""
         except Exception:
