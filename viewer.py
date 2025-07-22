@@ -91,7 +91,8 @@ class MacPptxPresentationViewer(MacPresentationViewer):
     """Specialized viewer for pptx files on macOS."""
 
     def start_show(self):
-        time.sleep(3) # Additional sleep time for pptx
+        time.sleep(5) # Additional sleep time for pptx
+        self._press_key("esc")
         self._press_hotkey("command", "option", "p")
         self.current_num = 0
 
