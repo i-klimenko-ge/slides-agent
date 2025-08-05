@@ -107,6 +107,28 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
     return {"status": "ok", "slide_number": slide_number, "text": text}
 
 
+def next_slide() -> dict:
+    """Перейти к следующему слайду текущей презентации."""
+    global _current_slide_num
+
+    if _current_slide_num is None:
+        return {"status": "error", "message": "Презентация не открыта"}
+
+    # _current_slide_num is zero-based, open_slide expects 1-based numbers
+    return open_slide(_current_slide_num + 2)
+
+
+def previous_slide() -> dict:
+    """Перейти к предыдущему слайду текущей презентации."""
+    global _current_slide_num
+
+    if _current_slide_num is None:
+        return {"status": "error", "message": "Презентация не открыта"}
+
+    # _current_slide_num is zero-based, open_slide expects 1-based numbers
+    return open_slide(_current_slide_num)
+
+
 @tool
 def list_slides_tool() -> dict:
     """Получить номера слайдов и соответствующее им текстовое содержимое"""
