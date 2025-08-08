@@ -107,26 +107,54 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
     return {"status": "ok", "slide_number": slide_number, "text": text}
 
 
+@tool
 def next_slide() -> dict:
     """Перейти к следующему слайду текущей презентации."""
-    global _current_slide_num
+    global _current_presentation, _current_slide_num
 
-    if _current_slide_num is None:
+    if _current_presentation is None or _current_slide_num is None:
         return {"status": "error", "message": "Презентация не открыта"}
 
-    # _current_slide_num is zero-based, open_slide expects 1-based numbers
-    return open_slide(_current_slide_num + 2)
+    prs = _current_presentation
+    slide_number = _current_slide_num + 2  # convert to 1-based and move forward
+
+    if slide_number < 1 or slide_number > prs.slides_count():
+        return {"status": "error", "message": "Некорректный номер слайда"}
+
+    try:
+        prs.goto(slide_number)
+    except Exception:
+        pass
+
+    _current_slide_num = slide_number - 1
+    text = prs.get_slide_text(_current_slide_num)
+
+    return {"status": "ok", "slide_number": slide_number, "text": text}
 
 
+@tool
 def previous_slide() -> dict:
     """Перейти к предыдущему слайду текущей презентации."""
-    global _current_slide_num
+    global _current_presentation, _current_slide_num
 
-    if _current_slide_num is None:
+    if _current_presentation is None or _current_slide_num is None:
         return {"status": "error", "message": "Презентация не открыта"}
 
-    # _current_slide_num is zero-based, open_slide expects 1-based numbers
-    return open_slide(_current_slide_num)
+    prs = _current_presentation
+    slide_number = _current_slide_num  # convert to 1-based and move backward
+
+    if slide_number < 1 or slide_number > prs.slides_count():
+        return {"status": "error", "message": "Некорректный номер слайда"}
+
+    try:
+        prs.goto(slide_number)
+    except Exception:
+        pass
+
+    _current_slide_num = slide_number - 1
+    text = prs.get_slide_text(_current_slide_num)
+
+    return {"status": "ok", "slide_number": slide_number, "text": text}
 
 
 @tool

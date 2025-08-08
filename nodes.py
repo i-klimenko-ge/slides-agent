@@ -7,6 +7,8 @@ from tools import (
     open_presentation_tool,
     close_presentation_tool,
     open_slide,
+    next_slide,
+    previous_slide,
     list_presentations_tool,
     list_slides_tool,
 )
@@ -19,6 +21,8 @@ tools_by_name = {
         open_presentation_tool,
         close_presentation_tool,
         open_slide,
+        next_slide,
+        previous_slide,
         list_presentations_tool,
         list_slides_tool,
     ]
@@ -42,6 +46,8 @@ def reflect_node(state: AgentState, config: RunnableConfig):
         open_presentation_tool,
         close_presentation_tool,
         open_slide,
+        next_slide,
+        previous_slide,
         list_presentations_tool,
         list_slides_tool,
     ]
