@@ -34,7 +34,7 @@ def list_presentations_tool() -> dict:
 
 
 @tool
-def open_presentation_tool(query: Annotated[str, "имя файла презентации"]) -> dict:
+def open_presentation_tool(query: Annotated[str, "Имя файла презентации с расширением, например 'презентация 2.pdf'"]) -> dict:
     """Открыть презентацию для просмотра"""
     global _current_presentation, _current_presentation_path, _current_slide_num
 
