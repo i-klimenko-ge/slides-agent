@@ -12,11 +12,11 @@ class AgentRequest(BaseModel):
 
 @app.post("/next-slide")
 async def api_next_slide():
-    return await asyncio.to_thread(next_slide)
+    return await asyncio.to_thread(lambda: next_slide.invoke({}))
 
 @app.post("/previous-slide")
 async def api_previous_slide():
-    return await asyncio.to_thread(previous_slide)
+    return await asyncio.to_thread(lambda: previous_slide.invoke({}))
 
 @app.post("/run-agent")
 async def run_agent(request: AgentRequest):

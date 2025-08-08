@@ -107,26 +107,58 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
     return {"status": "ok", "slide_number": slide_number, "text": text}
 
 
+@tool
 def next_slide() -> dict:
     """Перейти к следующему слайду текущей презентации."""
-    global _current_slide_num
+    global _current_presentation, _current_slide_num
 
-    if _current_slide_num is None:
+    if _current_presentation is None or _current_slide_num is None:
         return {"status": "error", "message": "Презентация не открыта"}
 
-    # _current_slide_num is zero-based, open_slide expects 1-based numbers
-    return open_slide(_current_slide_num + 2)
+    prs = _current_presentation
+    if _current_slide_num + 1 >= prs.slides_count():
+        return {"status": "error", "message": "Некорректный номер слайда"}
+
+    try:
+        prs.next_slide()
+    except Exception:
+        pass
+
+    _current_slide_num += 1
+    text = prs.get_slide_text(_current_slide_num)
+
+    return {
+        "status": "ok",
+        "slide_number": _current_slide_num + 1,
+        "text": text,
+    }
 
 
+@tool
 def previous_slide() -> dict:
     """Перейти к предыдущему слайду текущей презентации."""
-    global _current_slide_num
+    global _current_presentation, _current_slide_num
 
-    if _current_slide_num is None:
+    if _current_presentation is None or _current_slide_num is None:
         return {"status": "error", "message": "Презентация не открыта"}
 
-    # _current_slide_num is zero-based, open_slide expects 1-based numbers
-    return open_slide(_current_slide_num)
+    prs = _current_presentation
+    if _current_slide_num <= 0:
+        return {"status": "error", "message": "Некорректный номер слайда"}
+
+    try:
+        prs.previous_slide()
+    except Exception:
+        pass
+
+    _current_slide_num -= 1
+    text = prs.get_slide_text(_current_slide_num)
+
+    return {
+        "status": "ok",
+        "slide_number": _current_slide_num + 1,
+        "text": text,
+    }
 
 
 @tool
@@ -142,5 +174,4 @@ def list_slides_tool() -> dict:
     slides = []
     for i in range(prs.slides_count()):
         slides.append({"number": i + 1, "text": prs.get_slide_text(i)})
-
     return {"status": "ok", "slides": slides}

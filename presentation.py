@@ -35,6 +35,14 @@ class BasePresentation(ABC):
     def goto(self, num: int) -> None:
         self.viewer.goto_slide(num)
 
+    def next_slide(self) -> None:
+        """Move to the next slide."""
+        self.viewer.next_slide()
+
+    def previous_slide(self) -> None:
+        """Move to the previous slide."""
+        self.viewer.previous_slide()
+
     @abstractmethod
     def slides_count(self) -> int:  # pragma: no cover - interface
         ...
