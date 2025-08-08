@@ -45,6 +45,15 @@ def open_presentation_tool(query: Annotated[str, "Имя файла презен
     if not os.path.exists(path):
         return {"status": "error", "message": f"Файл {query} не найден"}
 
+    if _current_presentation is not None:
+        try:
+            _current_presentation.close()
+        except Exception:
+            pass
+        _current_presentation = None
+        _current_presentation_path = None
+        _current_slide_num = None
+
     try:
         viewer = get_viewer(OS_TYPE, path)
         prs = create_presentation(path, viewer)
@@ -62,25 +71,6 @@ def open_presentation_tool(query: Annotated[str, "Имя файла презен
         "slides_count": prs.slides_count(),
         "message": f"Открыта презентация {os.path.basename(path)}",
     }
-
-
-@tool
-def close_presentation_tool() -> dict:
-    """Завершить просмотр и закрыть презентацию"""
-    global _current_presentation, _current_presentation_path, _current_slide_num
-
-    if _current_presentation is None:
-        return {"status": "error", "message": "Презентация не открыта"}
-
-    try:
-        _current_presentation.close()
-    except Exception:
-        pass
-    _current_presentation = None
-    _current_presentation_path = None
-    _current_slide_num = None
-
-    return {"status": "ok", "message": "Презентация закрыта"}
 
 
 @tool

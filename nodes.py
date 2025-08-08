@@ -5,7 +5,6 @@ from state import AgentState
 from model import get_model
 from tools import (
     open_presentation_tool,
-    close_presentation_tool,
     open_slide,
     next_slide,
     previous_slide,
@@ -19,7 +18,6 @@ tools_by_name = {
     tool.name: tool
     for tool in [
         open_presentation_tool,
-        close_presentation_tool,
         open_slide,
         next_slide,
         previous_slide,
@@ -44,7 +42,6 @@ def reflect_node(state: AgentState, config: RunnableConfig):
 
     tools_list = [
         open_presentation_tool,
-        close_presentation_tool,
         open_slide,
         next_slide,
         previous_slide,
@@ -70,8 +67,6 @@ def use_tool_node(state: AgentState):
             current_slide = result.get("slide_number")
         elif call["name"] == open_presentation_tool.name and result.get("status") == "ok":
             current_slide = 1
-        elif call["name"] == close_presentation_tool.name and result.get("status") == "ok":
-            current_slide = None
 
         outputs.append(
             ToolMessage(
