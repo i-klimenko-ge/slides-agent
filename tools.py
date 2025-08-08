@@ -116,20 +116,22 @@ def next_slide() -> dict:
         return {"status": "error", "message": "Презентация не открыта"}
 
     prs = _current_presentation
-    slide_number = _current_slide_num + 2  # convert to 1-based and move forward
-
-    if slide_number < 1 or slide_number > prs.slides_count():
+    if _current_slide_num + 1 >= prs.slides_count():
         return {"status": "error", "message": "Некорректный номер слайда"}
 
     try:
-        prs.goto(slide_number)
+        prs.next_slide()
     except Exception:
         pass
 
-    _current_slide_num = slide_number - 1
+    _current_slide_num += 1
     text = prs.get_slide_text(_current_slide_num)
 
-    return {"status": "ok", "slide_number": slide_number, "text": text}
+    return {
+        "status": "ok",
+        "slide_number": _current_slide_num + 1,
+        "text": text,
+    }
 
 
 @tool
@@ -141,20 +143,22 @@ def previous_slide() -> dict:
         return {"status": "error", "message": "Презентация не открыта"}
 
     prs = _current_presentation
-    slide_number = _current_slide_num  # convert to 1-based and move backward
-
-    if slide_number < 1 or slide_number > prs.slides_count():
+    if _current_slide_num <= 0:
         return {"status": "error", "message": "Некорректный номер слайда"}
 
     try:
-        prs.goto(slide_number)
+        prs.previous_slide()
     except Exception:
         pass
 
-    _current_slide_num = slide_number - 1
+    _current_slide_num -= 1
     text = prs.get_slide_text(_current_slide_num)
 
-    return {"status": "ok", "slide_number": slide_number, "text": text}
+    return {
+        "status": "ok",
+        "slide_number": _current_slide_num + 1,
+        "text": text,
+    }
 
 
 @tool
@@ -170,5 +174,4 @@ def list_slides_tool() -> dict:
     slides = []
     for i in range(prs.slides_count()):
         slides.append({"number": i + 1, "text": prs.get_slide_text(i)})
-
     return {"status": "ok", "slides": slides}

@@ -43,6 +43,23 @@ class PresentationViewer:
             self._press_key(key)
         self.current_num = num
 
+    def next_slide(self) -> None:
+        """Move to the next slide."""
+        if self.process is None:
+            return
+        time.sleep(1)
+        self._press_key("right")
+        self.current_num = (self.current_num or 1) + 1
+
+    def previous_slide(self) -> None:
+        """Move to the previous slide."""
+        if self.process is None:
+            return
+        time.sleep(1)
+        self._press_key("left")
+        current = self.current_num or 1
+        self.current_num = max(1, current - 1)
+
     def start_show(self):
         """Optional: start presentation in fullscreen."""
         self._press_key("f5")
