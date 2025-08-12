@@ -1,3 +1,5 @@
+"""Simple command-line interface for interacting with the slide agent."""
+
 from langchain_core.messages import HumanMessage, AIMessage
 from colorama import init, Fore, Style, Back
 from graph import graph

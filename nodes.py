@@ -1,3 +1,5 @@
+"""Graph nodes that plan actions and execute slide-control tools."""
+
 import json
 import time
 from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage

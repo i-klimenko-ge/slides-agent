@@ -1,3 +1,5 @@
+"""Presentation abstractions for PPTX and PDF files with viewer support."""
+
 from __future__ import annotations
 
 import os

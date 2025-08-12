@@ -1,3 +1,5 @@
+"""Simple CLI client to send text to the running FastAPI agent service."""
+
 import requests
 
 BASE_URL = "http://localhost:8000"
