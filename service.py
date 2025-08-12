@@ -11,7 +11,11 @@ from state import AgentState
 app = FastAPI()
 
 # In-memory persistent state for the agent
-agent_state: AgentState = {"messages": [], "current_slide": None}
+agent_state: AgentState = {
+    "messages": [],
+    "current_slide": None,
+    "current_presentation": None,
+}
 
 class AgentRequest(BaseModel):
     text: str
@@ -65,10 +69,13 @@ async def run_agent(request: AgentRequest):
                 agent_state["messages"].append(msg)
                 if step.get("current_slide") is not None:
                     agent_state["current_slide"] = step["current_slide"]
+                if step.get("current_presentation") is not None:
+                    agent_state["current_presentation"] = step["current_presentation"]
             except AttributeError:
                 print(msg)
 
         print("Current slide:", agent_state.get("current_slide"))
+        print("Current presentation:", agent_state.get("current_presentation"))
         return {"status": "ok"}
 
     return await asyncio.to_thread(_run)

@@ -71,6 +71,7 @@ def open_presentation_tool(query: Annotated[str, "Имя файла презен
     return {
         "status": "ok",
         "slides_count": prs.slides_count(),
+        "presentation_name": os.path.basename(path),
         "message": f"Открыта презентация {os.path.basename(path)}",
     }
 

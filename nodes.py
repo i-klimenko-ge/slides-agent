@@ -34,13 +34,20 @@ def reflect_node(state: AgentState, config: RunnableConfig):
     """1) Reflect, plan & choose one tool call."""
 
 
+    current_presentation_info = (
+        f"\n\nТекущая презентация: {state['current_presentation']}"
+        if state.get('current_presentation')
+        else ""
+    )
+
     current_slide_info = (
         f"\n\nТекущий слайд: {state['current_slide']}" if state.get('current_slide') else ""
     )
 
     system = SystemMessage(
-        create_system_prompt() +
-        current_slide_info
+        create_system_prompt()
+        + current_presentation_info
+        + current_slide_info
     )
 
     model = get_model(slide_tools)
@@ -64,9 +71,10 @@ def use_tool_node(state: AgentState, config: RunnableConfig):
     result = tool_node.invoke(state, config)
 
     current_slide = state.get("current_slide")
+    current_presentation = state.get("current_presentation")
     outputs = result["messages"]
 
-    # Inspect tool results to track the current slide
+    # Inspect tool results to track the current slide and presentation
     for message in outputs:
         try:
             data = json.loads(message.content)
@@ -77,13 +85,18 @@ def use_tool_node(state: AgentState, config: RunnableConfig):
             current_slide = data.get("slide_number")
         elif message.name == open_presentation_tool.name and data.get("status") == "ok":
             current_slide = 1
+            current_presentation = data.get("presentation_name")
         elif (
             message.name in {next_slide.name, previous_slide.name}
             and data.get("status") == "ok"
         ):
             current_slide = data.get("slide_number")
 
-    return {"messages": outputs, "current_slide": current_slide}
+    return {
+        "messages": outputs,
+        "current_slide": current_slide,
+        "current_presentation": current_presentation,
+    }
 
 def should_use_tool(state: AgentState):
     """If the last LLM output included a tool call, go to execute; otherwise end."""
