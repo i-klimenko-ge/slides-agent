@@ -13,12 +13,7 @@ def main():
         if not text or text.lower() in {"quit", "exit"}:
             break
         resp = requests.post(url, json={"text": text})
-        if resp.ok:
-            data = resp.json()
-            print("Responses:", data.get("responses"))
-            print("Current slide:", data.get("current_slide"))
-        else:
-            print("Error:", resp.status_code, resp.text)
+        print("Status:", resp.status_code)
 
 
 if __name__ == "__main__":

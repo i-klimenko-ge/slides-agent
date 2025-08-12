@@ -58,10 +58,10 @@ async def run_agent(request: AgentRequest):
             if isinstance(m, AIMessage)
         ][prev_ai_count:]
 
-        return {
-            "responses": new_ai_msgs,
-            "current_slide": agent_state.get("current_slide"),
-        }
+        print("Responses:", new_ai_msgs)
+        print("Current slide:", agent_state.get("current_slide"))
+
+        return {"status": "ok"}
 
     return await asyncio.to_thread(_run)
 
