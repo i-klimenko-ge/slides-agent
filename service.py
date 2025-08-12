@@ -64,3 +64,9 @@ async def run_agent(request: AgentRequest):
         }
 
     return await asyncio.to_thread(_run)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
