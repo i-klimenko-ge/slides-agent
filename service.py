@@ -41,28 +41,34 @@ async def api_previous_slide():
 @app.post("/run-agent")
 async def run_agent(request: AgentRequest):
     def _run() -> dict:
+        """Run the agent and print responses as they are produced."""
         global agent_state
-        # Append the new human message to the persistent state
+        # Add the human message to persistent state
         agent_state["messages"] = agent_state.get("messages", []) + [
             HumanMessage(content=request.text)
         ]
 
-        # Remember previous number of AI responses to return only new ones
-        prev_ai_count = len([m for m in agent_state["messages"] if isinstance(m, AIMessage)])
+        # Stream through the graph so each response is handled immediately
+        stream = graph.stream(agent_state, stream_mode="values")
 
-        # Run the graph with the current persistent state
-        agent_state = graph.invoke(agent_state)
+        for step in stream:
+            msg = step["messages"][-1]
+            try:
+                if msg in agent_state["messages"]:
+                    continue
 
-        # Extract only the AI responses produced in this invocation
-        new_ai_msgs = [
-            m.content
-            for m in agent_state["messages"]
-            if isinstance(m, AIMessage)
-        ][prev_ai_count:]
+                if isinstance(msg, AIMessage):
+                    print("Response:", msg.content)
+                else:
+                    msg.pretty_print()
 
-        print("Responses:", new_ai_msgs)
+                agent_state["messages"].append(msg)
+                if step.get("current_slide") is not None:
+                    agent_state["current_slide"] = step["current_slide"]
+            except AttributeError:
+                print(msg)
+
         print("Current slide:", agent_state.get("current_slide"))
-
         return {"status": "ok"}
 
     return await asyncio.to_thread(_run)
