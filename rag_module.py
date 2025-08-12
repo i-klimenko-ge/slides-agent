@@ -1,3 +1,5 @@
+"""Lightweight FAISS-based retrieval module for semantic search."""
+
 import torch
 import json
 import faiss

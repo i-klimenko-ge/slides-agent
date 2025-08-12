@@ -1,3 +1,5 @@
+"""Helper to initialize the GigaChat model and bind tools."""
+
 import os
 import sys
 from colorama import init, Fore, Style, Back

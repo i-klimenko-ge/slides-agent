@@ -1,3 +1,5 @@
+"""LangChain tools for listing presentations and controlling slides."""
+
 from langchain_core.tools import tool
 from typing import Annotated
 import os
