@@ -1,3 +1,5 @@
+"""OS-specific helpers to open presentations and navigate slides via automation."""
+
 import subprocess
 import time
 import pyautogui
@@ -43,6 +45,23 @@ class PresentationViewer:
             self._press_key(key)
         self.current_num = num
 
+    def next_slide(self) -> None:
+        """Move to the next slide."""
+        if self.process is None:
+            return
+        time.sleep(1)
+        self._press_key("right")
+        self.current_num = (self.current_num or 1) + 1
+
+    def previous_slide(self) -> None:
+        """Move to the previous slide."""
+        if self.process is None:
+            return
+        time.sleep(1)
+        self._press_key("left")
+        current = self.current_num or 1
+        self.current_num = max(1, current - 1)
+
     def start_show(self):
         """Optional: start presentation in fullscreen."""
         self._press_key("f5")
@@ -50,17 +69,27 @@ class PresentationViewer:
 
 
 class LinuxPresentationViewer(PresentationViewer):
-    """Use libreoffice and xdotool on Linux."""
+    """Use Document Viewer (evince) on Linux."""
 
     def open(self, path: str):
         self.close()
         try:
-            self.process = subprocess.Popen(["libreoffice", "--show", path])
+            self.process = subprocess.Popen(["evince", path])
         except Exception:
             # fallback
             self.process = subprocess.Popen(["xdg-open", path])
         self.current_num = 0
         self.path = path
+
+    def goto_slide(self, num: int) -> None:
+        """Navigate by typing slide number followed by Enter."""
+        if self.process is None:
+            return
+
+        for s in str(num):
+            self._press_key(s)
+        self._press_key("enter")
+        self.current_num = num
 
 
 class WindowsPresentationViewer(PresentationViewer):

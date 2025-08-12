@@ -1,3 +1,5 @@
+"""Utility to load optional configuration from ``config.yaml``."""
+
 import yaml
 from pathlib import Path
 

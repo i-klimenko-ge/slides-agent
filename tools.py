@@ -1,3 +1,5 @@
+"""LangChain tools for listing presentations and controlling slides."""
+
 from langchain_core.tools import tool
 from typing import Annotated
 import os
@@ -34,20 +36,27 @@ def list_presentations_tool() -> dict:
 
 
 @tool
-def open_presentation_tool(query: Annotated[str, "имя файла презентации"]) -> dict:
+def open_presentation_tool(presentation_name: Annotated[str, "Имя файла презентации с расширением, например 'презентация 2.pdf'"]) -> dict:
     """Открыть презентацию для просмотра"""
     global _current_presentation, _current_presentation_path, _current_slide_num
+    
+    presentation_path = os.path.join(PRESENTATIONS_DIR, presentation_name)
 
-    path = query
-    if not os.path.isabs(path):
-        path = os.path.join(PRESENTATIONS_DIR, path)
+    if not os.path.exists(presentation_path):
+        return {"status": "error", "message": f"Файл {presentation_name} не найден"}
 
-    if not os.path.exists(path):
-        return {"status": "error", "message": f"Файл {query} не найден"}
+    if _current_presentation is not None:
+        try:
+            _current_presentation.close()
+        except Exception:
+            pass
+        _current_presentation = None
+        _current_presentation_path = None
+        _current_slide_num = None
 
     try:
-        viewer = get_viewer(OS_TYPE, path)
-        prs = create_presentation(path, viewer)
+        viewer = get_viewer(OS_TYPE, presentation_path)
+        prs = create_presentation(presentation_path, viewer)
         prs.open()
         time.sleep(2)
         prs.start_show()
@@ -55,32 +64,14 @@ def open_presentation_tool(query: Annotated[str, "имя файла презен
         return {"status": "error", "message": f"Не удалось открыть файл: {e}"}
 
     _current_presentation = prs
-    _current_presentation_path = path
+    _current_presentation_path = presentation_path
     _current_slide_num = 0
     return {
         "status": "ok",
         "slides_count": prs.slides_count(),
-        "message": f"Открыта презентация {os.path.basename(path)}",
+        "presentation_name": presentation_name,
+        "message": f"Открыта презентация {presentation_name}",
     }
-
-
-@tool
-def close_presentation_tool() -> dict:
-    """Завершить просмотр и закрыть презентацию"""
-    global _current_presentation, _current_presentation_path, _current_slide_num
-
-    if _current_presentation is None:
-        return {"status": "error", "message": "Презентация не открыта"}
-
-    try:
-        _current_presentation.close()
-    except Exception:
-        pass
-    _current_presentation = None
-    _current_presentation_path = None
-    _current_slide_num = None
-
-    return {"status": "ok", "message": "Презентация закрыта"}
 
 
 @tool
@@ -108,6 +99,60 @@ def open_slide(slide_number: Annotated[int, "номер слайда"]) -> dict:
 
 
 @tool
+def next_slide() -> dict:
+    """Перейти к следующему слайду текущей презентации."""
+    global _current_presentation, _current_slide_num
+
+    if _current_presentation is None or _current_slide_num is None:
+        return {"status": "error", "message": "Презентация не открыта"}
+
+    prs = _current_presentation
+    if _current_slide_num + 1 >= prs.slides_count():
+        return {"status": "error", "message": "Некорректный номер слайда"}
+
+    try:
+        prs.next_slide()
+    except Exception:
+        pass
+
+    _current_slide_num += 1
+    text = prs.get_slide_text(_current_slide_num)
+
+    return {
+        "status": "ok",
+        "slide_number": _current_slide_num + 1,
+        "text": text,
+    }
+
+
+@tool
+def previous_slide() -> dict:
+    """Перейти к предыдущему слайду текущей презентации."""
+    global _current_presentation, _current_slide_num
+
+    if _current_presentation is None or _current_slide_num is None:
+        return {"status": "error", "message": "Презентация не открыта"}
+
+    prs = _current_presentation
+    if _current_slide_num <= 0:
+        return {"status": "error", "message": "Некорректный номер слайда"}
+
+    try:
+        prs.previous_slide()
+    except Exception:
+        pass
+
+    _current_slide_num -= 1
+    text = prs.get_slide_text(_current_slide_num)
+
+    return {
+        "status": "ok",
+        "slide_number": _current_slide_num + 1,
+        "text": text,
+    }
+
+
+@tool
 def list_slides_tool() -> dict:
     """Получить номера слайдов и соответствующее им текстовое содержимое"""
     global _current_presentation
@@ -120,5 +165,4 @@ def list_slides_tool() -> dict:
     slides = []
     for i in range(prs.slides_count()):
         slides.append({"number": i + 1, "text": prs.get_slide_text(i)})
-
     return {"status": "ok", "slides": slides}

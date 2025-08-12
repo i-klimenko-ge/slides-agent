@@ -1,3 +1,5 @@
+"""Typed state object used by the LangGraph workflow."""
+
 from typing import Annotated, Sequence, TypedDict
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
@@ -11,3 +13,4 @@ class AgentState(TypedDict):
     
     messages: Annotated[Sequence[BaseMessage], add_messages]
     current_slide: int | None
+    current_presentation: str | None

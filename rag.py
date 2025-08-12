@@ -1,3 +1,5 @@
+"""RAG source implementations for retrieving slide-related context."""
+
 from typing import Dict, Any
 from datetime import datetime
 from rag_module import SimpleSearch
