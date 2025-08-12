@@ -78,6 +78,11 @@ def use_tool_node(state: AgentState):
             current_slide = result.get("slide_number")
         elif call["name"] == open_presentation_tool.name and result.get("status") == "ok":
             current_slide = 1
+        elif (
+            call["name"] in {next_slide.name, previous_slide.name}
+            and result.get("status") == "ok"
+        ):
+            current_slide = result.get("slide_number")
 
         outputs.append(
             ToolMessage(
