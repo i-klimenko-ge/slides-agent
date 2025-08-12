@@ -12,7 +12,7 @@ from tools import (
     list_presentations_tool,
     list_slides_tool,
 )
-from prompts import create_system_prompt, get_react_instructions
+from prompts import create_system_prompt
 
 # Map name → tool
 tools_by_name = {
@@ -37,7 +37,6 @@ def reflect_node(state: AgentState, config: RunnableConfig):
 
     system = SystemMessage(
         create_system_prompt() +
-        get_react_instructions() +
         current_slide_info
     )
 

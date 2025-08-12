@@ -13,10 +13,4 @@ with open(prompts_path, 'r', encoding='utf-8') as f:
 
 
 def create_system_prompt() -> str:
-    return prompts['system_prompt'].format(
-        role_prompt=prompts['role_prompt']
-    )
-
-
-def get_react_instructions() -> str:
-    return prompts['react_instructions']
+    return prompts['system_prompt']
