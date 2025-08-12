@@ -1,4 +1,5 @@
 import json
+import time
 from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from state import AgentState
@@ -50,7 +51,17 @@ def reflect_node(state: AgentState, config: RunnableConfig):
     ]
 
     model = get_model(tools_list)
-    response = model.invoke([system] + list(state["messages"]), config)
+
+    # retry invoking the model in case of transient failures
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        try:
+            response = model.invoke([system] + list(state["messages"]), config)
+            break
+        except Exception:
+            if attempt == max_attempts:
+                raise
+            time.sleep(2 ** (attempt - 1))
 
     return {"messages": [response]}
 
