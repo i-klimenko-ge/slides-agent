@@ -57,7 +57,7 @@ def reflect_node(state: AgentState, config: RunnableConfig):
     conversation = trim_messages(
         conversation,
         token_counter=model,
-        max_tokens=12_000,
+        max_tokens=1000,
         strategy="last",
         include_system=True,
     )
