@@ -2,8 +2,9 @@
 
 import json
 import time
-from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
+from langgraph.prebuilt import ToolNode
 from state import AgentState
 from model import get_model
 from tools import (
@@ -16,18 +17,18 @@ from tools import (
 )
 from prompts import create_system_prompt
 
-# Map name → tool
-tools_by_name = {
-    tool.name: tool
-    for tool in [
-        open_presentation_tool,
-        open_slide,
-        next_slide,
-        previous_slide,
-        list_presentations_tool,
-        list_slides_tool,
-    ]
-}
+# Shared list of slide-control tools
+slide_tools = [
+    open_presentation_tool,
+    open_slide,
+    next_slide,
+    previous_slide,
+    list_presentations_tool,
+    list_slides_tool,
+]
+
+# Prebuilt node for executing tools
+tool_node = ToolNode(slide_tools)
 
 def reflect_node(state: AgentState, config: RunnableConfig):
     """1) Reflect, plan & choose one tool call."""
@@ -42,16 +43,7 @@ def reflect_node(state: AgentState, config: RunnableConfig):
         current_slide_info
     )
 
-    tools_list = [
-        open_presentation_tool,
-        open_slide,
-        next_slide,
-        previous_slide,
-        list_presentations_tool,
-        list_slides_tool,
-    ]
-
-    model = get_model(tools_list)
+    model = get_model(slide_tools)
 
     # retry invoking the model in case of transient failures
     max_attempts = 3
@@ -66,32 +58,31 @@ def reflect_node(state: AgentState, config: RunnableConfig):
 
     return {"messages": [response]}
 
-def use_tool_node(state: AgentState):
-    """2) Execute the tool call chosen in reflect_node."""
-    outputs = []
-    last = state["messages"][-1]
+def use_tool_node(state: AgentState, config: RunnableConfig):
+    """2) Execute the tool call chosen in reflect_node using ToolNode."""
+    # Run tools with the prebuilt ToolNode
+    result = tool_node.invoke(state, config)
+
     current_slide = state.get("current_slide")
+    outputs = result["messages"]
 
-    for call in last.tool_calls:
-        result = tools_by_name[call["name"]].invoke(call["args"])
+    # Inspect tool results to track the current slide
+    for message in outputs:
+        try:
+            data = json.loads(message.content)
+        except json.JSONDecodeError:
+            continue
 
-        if call["name"] == open_slide.name and result.get("status") == "ok":
-            current_slide = result.get("slide_number")
-        elif call["name"] == open_presentation_tool.name and result.get("status") == "ok":
+        if message.name == open_slide.name and data.get("status") == "ok":
+            current_slide = data.get("slide_number")
+        elif message.name == open_presentation_tool.name and data.get("status") == "ok":
             current_slide = 1
         elif (
-            call["name"] in {next_slide.name, previous_slide.name}
-            and result.get("status") == "ok"
+            message.name in {next_slide.name, previous_slide.name}
+            and data.get("status") == "ok"
         ):
-            current_slide = result.get("slide_number")
+            current_slide = data.get("slide_number")
 
-        outputs.append(
-            ToolMessage(
-                content=json.dumps(result, ensure_ascii=False),
-                name=call["name"],
-                tool_call_id=call["id"],
-            )
-        )
     return {"messages": outputs, "current_slide": current_slide}
 
 def should_use_tool(state: AgentState):
