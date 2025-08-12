@@ -1,0 +1,17 @@
+PyPDF2
+Pillow
+colorama
+faiss-cpu
+fastapi
+langchain-core
+langchain-gigachat
+langgraph
+pydantic
+pyautogui
+python-dotenv
+python-pptx
+PyYAML
+requests
+torch
+transformers
+uvicorn
