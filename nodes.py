@@ -2,7 +2,7 @@
 
 import json
 import time
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, trim_messages
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
 from state import AgentState
@@ -40,10 +40,20 @@ def reflect_node(state: AgentState, config: RunnableConfig, max_attempts = 5):
 
     model = get_model(slide_tools)
 
+    # Trim conversation to avoid exceeding the model context window
+    conversation = [system] + list(state["messages"])
+    conversation = trim_messages(
+        conversation,
+        token_counter=model,
+        max_tokens=1000,
+        strategy="last",
+        include_system=True,
+    )
+
     # retry invoking the model in case of transient failures
     for attempt in range(1, max_attempts + 1):
         try:
-            response = model.invoke([system] + list(state["messages"]), config)
+            response = model.invoke(conversation, config)
             break
         except Exception:
             if attempt == max_attempts:
