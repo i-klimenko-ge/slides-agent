@@ -1,3 +1,5 @@
+"""Load prompt templates and expose helpers to build system prompts."""
+
 from pathlib import Path
 from typing import List
 

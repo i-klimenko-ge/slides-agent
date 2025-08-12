@@ -1,3 +1,5 @@
+"""OS-specific helpers to open presentations and navigate slides via automation."""
+
 import subprocess
 import time
 import pyautogui

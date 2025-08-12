@@ -1,3 +1,5 @@
+"""LangGraph workflow connecting reflection and tool-execution nodes."""
+
 from langgraph.graph import StateGraph, END
 from state import AgentState
 from nodes import reflect_node, use_tool_node, should_use_tool

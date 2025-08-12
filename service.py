@@ -1,3 +1,5 @@
+"""FastAPI service exposing slide-control endpoints and an agent interface."""
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import asyncio
