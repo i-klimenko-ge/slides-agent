@@ -17,21 +17,18 @@ from tools import (
 )
 from prompts import create_system_prompt
 
-# Map name → tool
-tools_by_name = {
-    tool.name: tool
-    for tool in [
-        open_presentation_tool,
-        open_slide,
-        next_slide,
-        previous_slide,
-        list_presentations_tool,
-        list_slides_tool,
-    ]
-}
+# Shared list of slide-control tools
+slide_tools = [
+    open_presentation_tool,
+    open_slide,
+    next_slide,
+    previous_slide,
+    list_presentations_tool,
+    list_slides_tool,
+]
 
 # Prebuilt node for executing tools
-tool_node = ToolNode(tools_by_name)
+tool_node = ToolNode(slide_tools)
 
 def reflect_node(state: AgentState, config: RunnableConfig):
     """1) Reflect, plan & choose one tool call."""
@@ -46,16 +43,7 @@ def reflect_node(state: AgentState, config: RunnableConfig):
         current_slide_info
     )
 
-    tools_list = [
-        open_presentation_tool,
-        open_slide,
-        next_slide,
-        previous_slide,
-        list_presentations_tool,
-        list_slides_tool,
-    ]
-
-    model = get_model(tools_list)
+    model = get_model(slide_tools)
 
     # retry invoking the model in case of transient failures
     max_attempts = 3
