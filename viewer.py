@@ -67,17 +67,27 @@ class PresentationViewer:
 
 
 class LinuxPresentationViewer(PresentationViewer):
-    """Use libreoffice and xdotool on Linux."""
+    """Use Document Viewer (evince) on Linux."""
 
     def open(self, path: str):
         self.close()
         try:
-            self.process = subprocess.Popen(["libreoffice", "--show", path])
+            self.process = subprocess.Popen(["evince", path])
         except Exception:
             # fallback
             self.process = subprocess.Popen(["xdg-open", path])
         self.current_num = 0
         self.path = path
+
+    def goto_slide(self, num: int) -> None:
+        """Navigate by typing slide number followed by Enter."""
+        if self.process is None:
+            return
+
+        for s in str(num):
+            self._press_key(s)
+        self._press_key("enter")
+        self.current_num = num
 
 
 class WindowsPresentationViewer(PresentationViewer):
