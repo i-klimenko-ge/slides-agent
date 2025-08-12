@@ -13,3 +13,4 @@ class AgentState(TypedDict):
     
     messages: Annotated[Sequence[BaseMessage], add_messages]
     current_slide: int | None
+    current_presentation: str | None

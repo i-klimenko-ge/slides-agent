@@ -5,7 +5,7 @@ from colorama import init, Fore, Style, Back
 from graph import graph
 
 if __name__ == '__main__':
-    conversation = {"messages": [], "current_slide": None}
+    conversation = {"messages": [], "current_slide": None, "current_presentation": None}
     print("Чем могу помочь?")
     while True:
         user_input = input("You: ")
@@ -35,4 +35,6 @@ if __name__ == '__main__':
                 conversation["messages"].append(msg)
                 if step.get("current_slide") is not None:
                     conversation["current_slide"] = step["current_slide"]
+                if step.get("current_presentation") is not None:
+                    conversation["current_presentation"] = step["current_presentation"]
             except AttributeError:                print(msg)
