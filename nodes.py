@@ -30,30 +30,17 @@ slide_tools = [
 # Prebuilt node for executing tools
 tool_node = ToolNode(slide_tools)
 
-def reflect_node(state: AgentState, config: RunnableConfig):
+def reflect_node(state: AgentState, config: RunnableConfig, max_attempts = 5):
     """1) Reflect, plan & choose one tool call."""
-
-
-    current_presentation_info = (
-        f"\n\nТекущая презентация: {state['current_presentation']}"
-        if state.get('current_presentation')
-        else ""
-    )
-
-    current_slide_info = (
-        f"\n\nТекущий слайд: {state['current_slide']}" if state.get('current_slide') else ""
-    )
 
     system = SystemMessage(
         create_system_prompt()
-        + current_presentation_info
-        + current_slide_info
+        + get_presentation_info(state)
     )
 
     model = get_model(slide_tools)
 
     # retry invoking the model in case of transient failures
-    max_attempts = 3
     for attempt in range(1, max_attempts + 1):
         try:
             response = model.invoke([system] + list(state["messages"]), config)
@@ -61,7 +48,8 @@ def reflect_node(state: AgentState, config: RunnableConfig):
         except Exception:
             if attempt == max_attempts:
                 raise
-            time.sleep(2 ** (attempt - 1))
+            coef = 0.2
+            time.sleep(coef * (2 ** (attempt - 1)))
 
     return {"messages": [response]}
 
@@ -113,3 +101,10 @@ def get_searches_left(state: AgentState, max_searches: int = 5):
         elif isinstance(m, HumanMessage):
             break
     return max_searches - searches
+
+def get_presentation_info(state: AgentState):
+
+    current_presentation = state['current_presentation'] if state.get('current_presentation') else "Нет"
+    current_slide = state['current_slide'] if state.get('current_slide') else "Нет"
+
+    return f"\n\nТекущая презентация: {current_presentation}\nТекущий слайд: {current_slide}"
