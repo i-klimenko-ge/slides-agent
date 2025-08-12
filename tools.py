@@ -36,16 +36,14 @@ def list_presentations_tool() -> dict:
 
 
 @tool
-def open_presentation_tool(query: Annotated[str, "Имя файла презентации с расширением, например 'презентация 2.pdf'"]) -> dict:
+def open_presentation_tool(presentation_name: Annotated[str, "Имя файла презентации с расширением, например 'презентация 2.pdf'"]) -> dict:
     """Открыть презентацию для просмотра"""
     global _current_presentation, _current_presentation_path, _current_slide_num
+    
+    presentation_path = os.path.join(PRESENTATIONS_DIR, presentation_name)
 
-    path = query
-    if not os.path.isabs(path):
-        path = os.path.join(PRESENTATIONS_DIR, path)
-
-    if not os.path.exists(path):
-        return {"status": "error", "message": f"Файл {query} не найден"}
+    if not os.path.exists(presentation_path):
+        return {"status": "error", "message": f"Файл {presentation_name} не найден"}
 
     if _current_presentation is not None:
         try:
@@ -57,8 +55,8 @@ def open_presentation_tool(query: Annotated[str, "Имя файла презен
         _current_slide_num = None
 
     try:
-        viewer = get_viewer(OS_TYPE, path)
-        prs = create_presentation(path, viewer)
+        viewer = get_viewer(OS_TYPE, presentation_path)
+        prs = create_presentation(presentation_path, viewer)
         prs.open()
         time.sleep(2)
         prs.start_show()
@@ -66,13 +64,13 @@ def open_presentation_tool(query: Annotated[str, "Имя файла презен
         return {"status": "error", "message": f"Не удалось открыть файл: {e}"}
 
     _current_presentation = prs
-    _current_presentation_path = path
+    _current_presentation_path = presentation_path
     _current_slide_num = 0
     return {
         "status": "ok",
         "slides_count": prs.slides_count(),
-        "presentation_name": os.path.basename(path),
-        "message": f"Открыта презентация {os.path.basename(path)}",
+        "presentation_name": presentation_name,
+        "message": f"Открыта презентация {presentation_name}",
     }
 
 
