@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import asyncio
+import argparse
 from tools import next_slide, previous_slide
 from langchain_core.messages import HumanMessage, AIMessage
 from graph import graph
@@ -83,5 +84,9 @@ async def run_agent(request: AgentRequest):
 
 if __name__ == "__main__":
     import uvicorn
+    parser = argparse.ArgumentParser(description="Run the slide-control FastAPI service.")
+    parser.add_argument("--port", type=int, default=8000, help="Port number to run the service on.")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind the service to.")
+    args = parser.parse_args()
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=args.host, port=args.port)
