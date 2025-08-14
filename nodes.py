@@ -15,6 +15,7 @@ from tools import (
     list_presentations_tool,
     list_slides_tool,
 )
+from helpers import stitch_tool_results_next_to_calls, drop_orphan_tool_results
 from prompts import create_system_prompt
 
 # Shared list of slide-control tools
@@ -40,8 +41,11 @@ def reflect_node(state: AgentState, config: RunnableConfig, max_attempts = 5):
 
     model = get_model(slide_tools)
 
-    # Trim conversation to avoid exceeding the model context window
-    conversation = [system] + list(state["messages"])
+    # Stitch history so tool results sit right after their assistant call
+    history = stitch_tool_results_next_to_calls(list(state["messages"]))
+
+    conversation = [system] + history
+
     conversation = trim_messages(
         conversation,
         token_counter=model,
@@ -51,6 +55,9 @@ def reflect_node(state: AgentState, config: RunnableConfig, max_attempts = 5):
         include_system=True,
         allow_partial=False,
     )
+
+    # drop any orphans that trimming might have created
+    conversation = drop_orphan_tool_results(conversation)
 
     # retry invoking the model in case of transient failures
     for attempt in range(1, max_attempts + 1):
