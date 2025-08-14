@@ -47,7 +47,9 @@ def reflect_node(state: AgentState, config: RunnableConfig, max_attempts = 5):
         token_counter=model,
         max_tokens=10000,
         strategy="last",
+        start_on="human",
         include_system=True,
+        allow_partial=False,
     )
 
     # retry invoking the model in case of transient failures
